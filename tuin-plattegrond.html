@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="nl"><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2f5f3a"><link rel="icon" href="iconen/icoon-192.png"><link rel="apple-touch-icon" href="iconen/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<meta charset="utf-8">
+<title>Tuinontwerp plattegrond</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: full-height split. Drawing on paper fills the left, control panel right; stacked on phones. Matches the 3D-model page. */
+:root{
+  --bg:#eef0ec; --panel:#f7f8f5; --fg:#1d2420; --muted:#5a665d; --line:#d3d9d1;
+  --accent:#3b6a45; --accent-ink:#ffffff; --chip:#e2e8df; --paper:#ffffff; --sel:#d9480f;
+  --f-ui:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-num:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--bg:#131714;--panel:#1a1f1b;--fg:#e3e8e2;--muted:#9aa69d;--line:#2c342e;--accent:#86bb8f;--accent-ink:#0e1a10;--chip:#242b25;--paper:#f4f5f1;color-scheme:dark}
+}
+:root[data-theme="dark"]{--bg:#131714;--panel:#1a1f1b;--fg:#e3e8e2;--muted:#9aa69d;--line:#2c342e;--accent:#86bb8f;--accent-ink:#0e1a10;--chip:#242b25;--paper:#f4f5f1;color-scheme:dark}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:15px;line-height:1.45}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 330px;height:100%}
+.view{position:relative;min-width:0;overflow:hidden;background:var(--bg)}
+#plan{display:block;width:100%;height:100%;background:var(--paper);touch-action:none;cursor:grab;user-select:none}
+#plan.dragging{cursor:grabbing}
+#plan.measuring{cursor:crosshair}
+.zoom{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:6px}
+.zoom button{width:36px;height:36px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--fg);font:inherit;font-size:18px;cursor:pointer}
+.hint{position:absolute;bottom:calc(10px + env(safe-area-inset-bottom,0px));left:calc(12px + env(safe-area-inset-left,0px));right:12px;font-size:12px;color:var(--muted);pointer-events:none}
+.panel{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding-block:18px 28px;padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+h1{font-size:20px;margin:0;text-wrap:balance}
+.lead{margin:4px 0 0;color:var(--muted);font-size:13.5px}
+h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0 0 9px;font-weight:700}
+.checks{display:flex;flex-direction:column;gap:6px}
+.checks label{display:flex;gap:8px;align-items:center;font-size:13.5px;cursor:pointer}
+.checks input{accent-color:var(--accent);width:16px;height:16px}
+.sw{width:14px;height:10px;border-radius:2px;flex:none;border:1px solid rgba(0,0,0,.25)}
+.btns{display:flex;flex-wrap:wrap;gap:6px}
+.btns button{font:inherit;font-size:13.5px;padding:6px 11px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+.btns button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:var(--bg)}
+.card h3{margin:0 0 6px;font-size:16px}
+.card ul{margin:0;padding-left:18px;font-size:13.5px}
+.card li{margin-bottom:3px}
+.card .empty{color:var(--muted);font-size:13.5px;margin:0}
+.readout{font-family:var(--f-num);font-size:13px;font-variant-numeric:tabular-nums;margin:8px 0 0;color:var(--fg)}
+.note{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+a{color:var(--accent)}
+[data-id]{cursor:pointer}
+[data-id]:hover{filter:brightness(.93)}
+.sel{filter:drop-shadow(0 0 2px #d9480f) drop-shadow(0 0 1px #d9480f)!important}
+text{font-family:"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif}
+.ts{font-size:12px;fill:#444441;pointer-events:none}
+.th{font-size:14px;font-weight:700;fill:#2C2C2A;pointer-events:none}
+.tb{fill:#712B13}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr;grid-template-rows:70vh auto;height:auto}
+  .panel{border-left:0;border-top:1px solid var(--line);overflow:visible}
+}
+.links{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:8px}
+.links a{font-size:13.5px;font-weight:600;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.links .br{flex-basis:100%;height:0}
+.links a.home{display:inline-flex;align-items:center;gap:6px;text-decoration:none;border:1.5px solid var(--accent);border-radius:4px;padding:2px 9px 2px 7px;transition:background .15s,color .15s}
+.links a.home:hover,.links a.home:focus-visible{background:var(--accent);color:var(--panel);outline:none}
+</style>
+
+<div class="app">
+  <div class="view">
+    <svg id="plan" viewBox="30 -140 620 1030" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Interactieve plattegrond van de tuin">
+      <defs><pattern id="grind" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#5F5E5A" fill-opacity="0.35"/><circle cx="3" cy="3" r="1" fill="#2C2C2A"/></pattern></defs>
+
+      <g id="l-omgeving">
+        <rect data-id="apt" x="40" y="-130" width="360" height="26" fill="#d6c3a5" stroke="#888780" stroke-width="0.5"/>
+        <rect data-id="galerij" x="40" y="-104" width="204" height="64" fill="#e6e1d6" stroke="#888780" stroke-width="0.5"/>
+        <rect data-id="lift" x="244" y="-104" width="96" height="88" fill="#b08d6a" stroke="#6e4b35" stroke-width="1"/>
+        <rect data-id="privetuin" x="40" y="-40" width="204" height="100" fill="#97C459" fill-opacity="0.3" stroke="#3B6D11" stroke-width="0.5" stroke-dasharray="3 2"/>
+        <text class="ts" x="220" y="-114" text-anchor="middle">Appartementencomplex, 3 bouwlagen</text>
+        <text class="ts" x="142" y="-70" text-anchor="middle">Galerij 1e en 2e verdieping</text>
+        <text class="ts" x="292" y="-60" text-anchor="middle" style="fill:#fff">Lift</text>
+        <text class="ts" x="142" y="12" text-anchor="middle">Privétuintjes</text>
+      </g>
+      <g id="l-bebouwing">
+        <rect data-id="complex" x="100" y="60" width="240" height="100" rx="2" fill="#F1EFE8" stroke="#888780" stroke-width="0.5"/>
+        <rect data-id="praktijk" x="400" y="40" width="164" height="280" rx="2" fill="#F1EFE8" stroke="#888780" stroke-width="0.5"/>
+        <rect data-id="woonhuis" x="100" y="508" width="198" height="296" rx="2" fill="#F1EFE8" stroke="#888780" stroke-width="0.5"/>
+        <rect data-id="bestschuur" x="298" y="804" width="266" height="30" rx="2" fill="#F1EFE8" stroke="#888780" stroke-width="0.5" stroke-dasharray="4 3"/>
+        <rect data-id="schuur" x="100" y="160" width="144" height="100" fill="#FAECE7" stroke="#993C1D" stroke-width="2"/>
+        <rect data-id="spoelplek" x="244" y="160" width="96" height="100" fill="#FAECE7" fill-opacity="0.5" stroke="#993C1D" stroke-width="2"/>
+        <rect data-id="overkapping" x="298" y="684" width="106" height="120" fill="#D9D3CE" stroke="#993C1D" stroke-width="2"/>
+        <rect data-id="stalling" x="404" y="684" width="160" height="120" fill="#FAECE7" stroke="#993C1D" stroke-width="2"/>
+        <line data-id="rolscherm" x1="245" y1="257" x2="339" y2="257" stroke="#444441" stroke-width="2" stroke-dasharray="4 2"/><rect data-id="werkbank" x="535" y="728" width="24" height="64" fill="#B4B2A9" stroke="#5F5E5A" stroke-width="0.75"/><text class="ts" style="font-size:9px" transform="rotate(-90 547 760)" x="547" y="760" text-anchor="middle" dominant-baseline="central" pointer-events="none">werkbank</text><g data-id="vent" fill="#5F5E5A"><rect x="116" y="258" width="12" height="4"/><rect x="242" y="204" width="4" height="12"/><rect x="416" y="682" width="12" height="4"/><rect x="402" y="738" width="4" height="12"/><rect x="402" y="770" width="4" height="12"/></g>
+        <g data-id="kliko"><rect x="300" y="692" width="29" height="24" rx="2" fill="#888780"/><rect x="300" y="720" width="29" height="24" rx="2" fill="#639922"/></g>
+        <rect data-id="regenton1" x="248" y="161" width="40" height="16" rx="2" fill="#185FA5" fill-opacity="0.35" stroke="#185FA5"/>
+        <rect data-id="regenton2" x="389" y="760" width="14" height="40" rx="2" fill="#185FA5" fill-opacity="0.35" stroke="#185FA5"/>
+        <g data-id="deuren" stroke="#993C1D" fill="none">
+          <line x1="150" y1="260" x2="190" y2="260" stroke-width="5"/>
+          <line x1="434" y1="684" x2="534" y2="684" stroke-width="5"/>
+          <line x1="340" y1="60" x2="400" y2="60" stroke-width="4"/>
+          <path d="M340 60 L340 120 A60 60 0 0 0 400 60" stroke-width="1"/>
+          <path d="M354 804 L354 768 A36 36 0 0 0 318 804" stroke-width="1"/>
+          <path d="M120 508 L120 472 A36 36 0 0 1 156 508" stroke-width="1"/>
+        </g>
+        <g stroke="#378ADD" stroke-width="3"><line x1="196" y1="260" x2="236" y2="260"/><line x1="156" y1="508" x2="278" y2="508"/><line x1="298" y1="560" x2="298" y2="636"/></g>
+      </g>
+
+      <g id="l-verharding">
+        <rect data-id="pad" x="340" y="60" width="60" height="624" fill="#B9B7B0"/>
+        <rect data-id="pad" x="399" y="320" width="5.5" height="364" fill="#B9B7B0"/>
+        <rect data-id="opstel" x="404" y="564" width="160" height="120" fill="#B9B7B0"/>
+        <rect data-id="tegelpad" x="100" y="260" width="240" height="48" fill="#B9B7B0"/>
+                <rect data-id="terras" x="100" y="412" width="240" height="96" fill="#B9B7B0"/>
+                <g data-id="pergola"><rect x="404" y="320" width="160" height="160" fill="#EAD9C0" stroke="#854F0B" stroke-width="0.75"/><g stroke="#854F0B" stroke-width="0.75" stroke-dasharray="2 3"><line x1="444" y1="324" x2="444" y2="476"/><line x1="484" y1="324" x2="484" y2="476"/><line x1="524" y1="324" x2="524" y2="476"/></g><g fill="#444441"><rect x="419" y="323" width="7" height="7"/><rect x="554" y="323" width="7" height="7"/><rect x="419" y="470" width="7" height="7"/><rect x="554" y="470" width="7" height="7"/></g></g>
+        <rect data-id="doorsteekC" x="500" y="480" width="40" height="84" fill="url(#grind)"/>
+        <g data-id="stapstenen" fill="#B9B7B0" stroke="#888780" stroke-width="0.5"><rect x="504" y="486" width="32" height="16"/><rect x="504" y="512" width="32" height="16"/><rect x="504" y="538" width="32" height="16"/></g>
+      </g>
+
+      <g id="l-groen">
+        <rect data-id="middenborder" x="100" y="308" width="50" height="104" fill="#97C459" fill-opacity="0.45" stroke="#444441" stroke-width="2"/>
+        <rect data-id="middenborder" x="190" y="308" width="150" height="104" fill="#97C459" fill-opacity="0.45" stroke="#444441" stroke-width="2"/>
+        <rect data-id="stapzone" x="150" y="308" width="40" height="104" fill="url(#grind)"/>
+        <g data-id="stapstenen" fill="#B9B7B0" stroke="#888780" stroke-width="0.5"><rect x="154" y="310.8" width="32" height="16"/><rect x="154" y="336.8" width="32" height="16"/><rect x="154" y="362.8" width="32" height="16"/><rect x="154" y="388.8" width="32" height="16"/></g>
+        <rect data-id="plantstrook" x="388" y="160" width="12" height="160" fill="#97C459" fill-opacity="0.6" stroke="#3B6D11" stroke-width="0.5"/>
+        <rect data-id="plantenbak" x="404" y="320" width="16" height="120" fill="#97C459" fill-opacity="0.45" stroke="#444441" stroke-width="2"/>
+        <rect data-id="zoneC" x="404" y="480" width="96" height="84" fill="#97C459" fill-opacity="0.45" stroke="#444441" stroke-width="2"/>
+        <rect data-id="zoneCoost" x="540" y="480" width="24" height="84" fill="#97C459" fill-opacity="0.45" stroke="#444441" stroke-width="2"/>
+        <rect data-id="zoneB" x="298" y="508" width="42" height="176" fill="#97C459" fill-opacity="0.45" stroke="#444441" stroke-width="2"/>
+        <g data-id="kant" stroke="#2C2C2A" stroke-width="1.5"><line x1="150" y1="308" x2="190" y2="308"/><line x1="388" y1="160" x2="388" y2="320" stroke-width="2.5"/></g>
+        <g data-id="schutting" stroke="#444441" stroke-width="4"><line x1="100" y1="160" x2="100" y2="508"/><line x1="564" y1="320" x2="564" y2="804"/></g>
+      </g>
+
+      <g id="l-bomen">
+        <g data-id="ritme" fill="#2C552C"><rect x="125" y="336" width="9" height="9"/><rect x="138" y="336" width="9" height="9"/><rect x="209" y="336" width="9" height="9"/><rect x="222" y="336" width="9" height="9"/><rect x="293" y="336" width="9" height="9"/><rect x="306" y="336" width="9" height="9"/></g><g data-id="ritme" fill="#B7AD6B"><circle cx="136" cy="386" r="6"/><circle cx="220" cy="386" r="6"/><circle cx="304" cy="386" r="6"/></g>
+        <g data-id="leibomen"><g stroke="#27500A" stroke-width="3" stroke-opacity="0.5"><line x1="100" y1="328" x2="172" y2="328"/><line x1="184" y1="328" x2="256" y2="328"/><line x1="268" y1="328" x2="340" y2="328"/><line x1="552" y1="486" x2="552" y2="558"/></g><g fill="#27500A"><circle cx="136" cy="328" r="5"/><circle cx="220" cy="328" r="5"/><circle cx="304" cy="328" r="5"/><circle cx="552" cy="522" r="5"/></g></g>
+      </g>
+
+      <g id="l-afwatering" hidden>
+        <g data-id="goten" stroke="#185FA5" stroke-width="3" stroke-dasharray="6 2"><line x1="100" y1="412" x2="340" y2="412"/><line x1="340" y1="564" x2="564" y2="564"/><line x1="404" y1="480" x2="564" y2="480"/></g>
+        <g data-id="hwa" fill="none" stroke="#185FA5" stroke-width="1" stroke-dasharray="2 3"><path d="M286 172 L286 300 L296 300 L296 502"/><path d="M348 564 L348 520 L306 520 L306 514"/><path d="M404 482 L352 482 L352 560"/><path d="M392 758 L392 690 L310 690 L310 640 L306 640 L306 516"/></g>
+        <circle data-id="regenpijp" cx="381" cy="800" r="3.5" fill="#185FA5" stroke="#0C447C" stroke-width="1"/>
+        <rect data-id="ip" x="292" y="502" width="12" height="12" fill="#185FA5" stroke="#0C447C"/>
+        <text class="ts" x="104" y="426">G1</text><text class="ts" x="404" y="578">G3</text><text class="ts" x="532" y="476">G4</text><text class="ts" x="308" y="498">IP?</text>
+      </g>
+
+      <g id="l-water" hidden>
+        <path d="M288 502 L288 474 L332 474 L332 186 L304 186 L304 178" fill="none" stroke="#378ADD" stroke-width="2"/>
+        <path d="M290 217 L290 300 L296 300 L296 502 M268 218 L290 218" fill="none" stroke="#993C1D" stroke-width="2" stroke-dasharray="5 3"/>
+        <rect data-id="w1" x="292" y="161" width="24" height="17" rx="2" fill="#378ADD" fill-opacity="0.6" stroke="#185FA5"/>
+        <rect data-id="dompelbak" x="246" y="200" width="22" height="36" rx="2" fill="#378ADD" fill-opacity="0.6" stroke="#185FA5"/>
+        <circle data-id="vloerputje" cx="292" cy="217" r="4" fill="#993C1D"/>
+        <circle data-id="w3" cx="288" cy="502" r="5" fill="#378ADD" stroke="#185FA5"/>
+      </g>
+
+      <g id="l-elektra" hidden>
+        <path d="M303 812 L303 690 L404 690 M303 690 L346 690 L346 270 L226 270 L226 252" fill="none" stroke="#534AB7" stroke-width="2"/>
+        <path d="M309 812 L309 698 L468 698 L468 708" fill="none" stroke="#534AB7" stroke-width="2" stroke-dasharray="6 3"/>
+        <rect data-id="meterkast" x="299" y="810" width="14" height="16" fill="#534AB7" stroke="#26215C" stroke-width="1"/><text class="ts" x="318" y="822">Meterkast</text>
+        <rect data-id="k1" x="404" y="684" width="12" height="12" fill="#534AB7"/>
+        <rect data-id="k2" x="220" y="240" width="12" height="12" fill="#534AB7"/>
+        <circle data-id="laadpunt" cx="468" cy="714" r="6" fill="#ffffff" stroke="#534AB7" stroke-width="2"/>
+        <g data-id="wcd" fill="#7F77DD" stroke="#3C3489" stroke-width="0.75"><rect x="108" y="226" width="8" height="8"/><rect x="200" y="226" width="8" height="8"/><rect x="318" y="228" width="8" height="8"/><rect x="424" y="334" width="8" height="8"/><rect x="390" y="726" width="8" height="8"/><rect x="548" y="700" width="8" height="8"/><rect x="548" y="764" width="8" height="8"/></g>
+        <text class="ts" x="400" y="680" text-anchor="end">K1</text><text class="ts" x="214" y="250" text-anchor="end">K2</text>
+      </g>
+
+      <g id="l-licht" hidden>
+        <g fill="#EF9F27" stroke="#854F0B">
+          <circle data-id="v1" cx="348" cy="68" r="5"/>
+          <g data-id="v3"><circle cx="145" cy="266" r="5"/><circle cx="170" cy="210" r="5"/><circle cx="300" cy="244" r="5"/></g>
+          <circle data-id="v4" cx="415" cy="676" r="5"/>
+          <g data-id="v5"><circle cx="112" cy="500" r="5"/><circle cx="164" cy="500" r="5"/></g>
+          <g data-id="vplafond"><circle cx="349" cy="745" r="5"/><circle cx="482" cy="745" r="5"/></g>
+        </g>
+        <g fill="#FAC775" stroke="#BA7517">
+          <g data-id="v2"><circle cx="337" cy="362" r="3.5"/><circle cx="337" cy="400" r="3.5"/><circle cx="337" cy="560" r="3.5"/><circle cx="337" cy="640" r="3.5"/><circle cx="403" cy="522" r="3.5"/></g>
+          <g data-id="v6"><circle cx="444" cy="350" r="3.5"/><circle cx="484" cy="350" r="3.5"/><circle cx="524" cy="350" r="3.5"/><circle cx="444" cy="450" r="3.5"/><circle cx="484" cy="450" r="3.5"/><circle cx="524" cy="450" r="3.5"/></g>
+          <g data-id="v2b"><circle cx="151" cy="338" r="3"/><circle cx="189" cy="384" r="3"/></g><g data-id="v7"><circle cx="136" cy="338" r="3.5"/><circle cx="220" cy="338" r="3.5"/><circle cx="304" cy="338" r="3.5"/><circle cx="546" cy="534" r="3.5"/></g>
+        </g>
+      </g>
+
+      <g id="l-maten">
+        <g stroke="#378ADD" stroke-width="0.75">
+          <line x1="80" y1="160" x2="80" y2="508"/><line x1="74" y1="160" x2="86" y2="160"/><line x1="74" y1="508" x2="86" y2="508"/>
+          <line x1="100" y1="146" x2="400" y2="146"/><line x1="100" y1="141" x2="100" y2="151"/><line x1="400" y1="141" x2="400" y2="151"/><line x1="340" y1="142" x2="340" y2="150"/>
+          <line x1="416" y1="160" x2="416" y2="320"/><line x1="411" y1="160" x2="421" y2="160"/><line x1="411" y1="320" x2="421" y2="320"/>
+          <line x1="400" y1="304" x2="564" y2="304"/><line x1="400" y1="299" x2="400" y2="309"/><line x1="564" y1="299" x2="564" y2="309"/>
+          <line x1="584" y1="320" x2="584" y2="804"/><line x1="578" y1="320" x2="590" y2="320"/><line x1="578" y1="804" x2="590" y2="804"/>
+          <line x1="298" y1="852" x2="564" y2="852"/><line x1="298" y1="846" x2="298" y2="858"/><line x1="564" y1="846" x2="564" y2="858"/>
+          <line x1="280" y1="508" x2="280" y2="804"/><line x1="275" y1="508" x2="285" y2="508"/><line x1="275" y1="804" x2="285" y2="804"/>
+          <line x1="100" y1="528" x2="298" y2="528"/><line x1="100" y1="523" x2="100" y2="533"/><line x1="298" y1="523" x2="298" y2="533"/>
+        </g>
+        <text class="ts" x="74" y="338" text-anchor="end">L1 · 870</text>
+        <text class="ts" x="220" y="134" text-anchor="middle">L2 · 750 (600 + 150)</text>
+        <text class="ts" x="424" y="250">L3 · 400</text>
+        <text class="ts" x="490" y="294" text-anchor="middle">L4 · 410</text>
+        <text class="ts" x="592" y="566">L5 · 1210</text>
+        <text class="ts" x="431" y="872" text-anchor="middle">L6 · 665</text>
+        <text class="ts" x="274" y="720" text-anchor="end">L7 · 740</text>
+        <text class="ts" x="190" y="546" text-anchor="middle">L8 · 495</text>
+      </g>
+
+      <g id="l-labels">
+        <text class="ts" x="220" y="100" text-anchor="middle">Schuurtjes complex, sedumdak</text>
+        <text class="th" x="490" y="131" text-anchor="middle">Praktijkruimte</text>
+        <text class="th" x="190" y="628" text-anchor="middle">Woonhuis</text>
+        <text class="ts" x="431" y="823" text-anchor="middle">Bestaande schuur</text>
+        <text class="th tb" x="172" y="204" text-anchor="middle">Tuinschuur</text>
+        <text class="th tb" x="292" y="204" text-anchor="middle">Spoelplek</text>
+        <text class="ts" x="270" y="288" text-anchor="middle">Tegelpad</text>
+        <text class="th" x="373" y="131" text-anchor="middle">Gang</text>
+        <text class="ts" x="372" y="36" text-anchor="middle">Poort</text>
+        <text class="th" x="370" y="440" text-anchor="middle">Pad</text>
+        <text class="th" x="260" y="390" text-anchor="middle">Zone A</text>
+        <text class="ts" x="260" y="406" text-anchor="middle">Verhoogd</text>
+        <text class="th" x="250" y="462" text-anchor="middle">Terras</text>
+        <text class="th" x="490" y="390" text-anchor="middle">Pergola</text>
+        <text class="th" x="450" y="526" text-anchor="middle">Zone C</text>
+        <text class="th" x="319" y="604" text-anchor="middle">B</text>
+        <text class="th" x="484" y="628" text-anchor="middle">Opstelplaats</text>
+        <text class="th" style="font-size:11px" x="362" y="730" text-anchor="middle">Overkapping</text>
+        <text class="th tb" x="484" y="730" text-anchor="middle">Motorstalling</text>
+        <text class="ts" x="128" y="466">D1</text><text class="ts" x="362" y="780" text-anchor="middle">D3</text>
+      </g>
+
+      <g id="measure" pointer-events="none"></g>
+    </svg>
+    <div class="zoom">
+      <button type="button" id="zin" aria-label="Inzoomen">+</button>
+      <button type="button" id="zout" aria-label="Uitzoomen">−</button>
+      <button type="button" id="zreset" aria-label="Hele tuin tonen" style="font-size:13px">⤢</button>
+    </div>
+    <div class="hint">Klik op een onderdeel voor details · sleep om te schuiven · scroll of knop om te zoomen</div>
+  </div>
+
+  <aside class="panel">
+    <div>
+      <h1>Tuinontwerp plattegrond</h1>
+      <p class="lead">Ontwerp op schaal, maten in cm, noord boven. Zet lagen aan of uit en klik op een onderdeel.</p>
+      <div class="links"><a class="home" href="index.html" title="Terug naar het projectoverzicht"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>Overzicht</a><a href="tuin-3d.html">3D-model</a><a href="tuin-legplan-40x80.html">Legplan 40 × 80</a><a href="dossier/sfeerbeelden.html">Sfeerbeelden</a></div>
+    </div>
+    <section>
+      <h2>Geselecteerd</h2>
+      <div class="card" id="info"><p class="empty">Klik op een onderdeel in de tekening.</p></div>
+    </section>
+    <section>
+      <h2>Lagen</h2>
+      <div class="checks" id="layers">
+        <label><input type="checkbox" id="c-omgeving" data-l="omgeving" checked><span class="sw" style="background:#d6c3a5"></span>Complex, galerij en lift</label>
+        <label><input type="checkbox" id="c-bebouwing" data-l="bebouwing" checked><span class="sw" style="background:#FAECE7"></span>Bebouwing en deuren</label>
+        <label><input type="checkbox" id="c-verharding" data-l="verharding" checked><span class="sw" style="background:#B9B7B0"></span>Verharding</label>
+        <label><input type="checkbox" id="c-groen" data-l="groen" checked><span class="sw" style="background:#C5DE9E"></span>Borders, grind en schuttingen</label>
+        <label><input type="checkbox" id="c-bomen" data-l="bomen" checked><span class="sw" style="background:#27500A"></span>Leibomen en boom</label>
+        <label><input type="checkbox" id="c-afwatering" data-l="afwatering"><span class="sw" style="background:#185FA5"></span>Afwatering en riool</label>
+        <label><input type="checkbox" id="c-water" data-l="water"><span class="sw" style="background:#378ADD"></span>Water en vuilwater</label>
+        <label><input type="checkbox" id="c-elektra" data-l="elektra"><span class="sw" style="background:#534AB7"></span>Elektra</label>
+        <label><input type="checkbox" id="c-licht" data-l="licht"><span class="sw" style="background:#EF9F27"></span>Verlichting</label>
+        <label><input type="checkbox" id="c-maten" data-l="maten" checked><span class="sw" style="background:#fff;border-color:#378ADD"></span>Maatlijnen</label>
+        <label><input type="checkbox" id="c-labels" data-l="labels" checked><span class="sw" style="background:#fff"></span>Namen</label>
+      </div>
+      <div class="btns" style="margin-top:10px">
+        <button type="button" id="b-ontwerp">Alleen ontwerp</button>
+        <button type="button" id="b-install">Installaties</button>
+        <button type="button" id="b-alles">Alles</button>
+      </div>
+    </section>
+    <section>
+      <h2>Meten</h2>
+      <div class="btns"><button type="button" id="b-meet" aria-pressed="false">Afstand meten</button><button type="button" id="b-wis">Wissen</button></div>
+      <p class="readout" id="meetout">Klik op "Afstand meten" en daarna op twee punten.</p>
+      <p class="note">Schaal: 1 eenheid in de tekening is 2,5 cm. Metingen zijn op het oog en niet exacter dan ongeveer 5 cm.</p>
+    </section>
+  </aside>
+</div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const svg=$('plan');
+const INFO={
+  complex:['Schuurtjes complex (L2)',['300 hoog, lichte baksteen, sedumdak','Vormen de grens van de tuin; niet ons eigendom','Daarachter privétuintjes, galerij en liftschacht']],
+  apt:['Appartementencomplex',['3 bouwlagen, lichte baksteen, zonnepanelen op het dak','Oostgevel in lijn met de westgevel van de praktijk','Rond trappenhuis aan de westzijde (buiten beeld)']],
+  galerij:['Galerij',['Op de 1e en 2e verdieping, ca. 3,0 en 6,0 m hoog','Loopt van het trappenhuis (west) tot de liftschacht','Inkijk: zie de inkijk-analyse in het 3D-model']],
+  lift:['Liftschacht',['Oostzijde van het complex, vast aan de gevel','Achter de spoelplek, ca. 1,2 m boven het dak','Voor de lift: het schuurtje met sedum op L2']],
+  privetuin:['Privétuintjes complex',['Smalle groenstroken met lage hagen','Tussen galerij en schuurtjes']],
+  praktijk:['Praktijkruimte chiropractor',['Muren L3 (400) en L4 (410), 275 hoog','Oud metselwerk, aluminium dakrand, begroeid plat dak','700 diep, geen ramen naar de tuin, niet ons eigendom']],
+  woonhuis:['Woonhuis',['Achtergevel L8: borstwering metselwerk, breed raam met bovenlichten, grindbetonband, raamband verdieping','Zadeldak, nok ca. 9 m','D1 donkerblauw met zijlicht; woonkamerraam ca. 300 breed; raam 190 × 120 in L7, op 130 cm van de hoek en 85 cm boven de tegels']],
+  bestschuur:['Bestaande schuur',['Muur L6, 665 lang, 250 hoog','Rood metselwerk, wit/crème boeiboord 35 cm, zwarte daktrim','Schuurdeur D3: donkerblauw met glas, draait de overkapping in','Bijgebouw sluit op gelijke hoogte aan: dak en boeiboord lopen door','Ca. 250 breed; meterkast in de westwand (aangenomen)']],
+  schuur:['Tuinschuur, dicht',['360 × 250 × 280','Hardhout dat vergrijst, antraciet details, sedumdak','Deur 100 breed, raam ca. 100 × 100','Ventilatieroosters laag in de zuidgevel en hoog in de oostwand, tegen vocht en schimmel','Vloer: Redsun Cerasun Siena Grigio 40 × 80 (Snoei SB-2752), halfsteensverband, noord-zuid','2 dubbele stopcontacten, plafondlamp']],
+  werkbank:['Werkbank motorstalling',['60 × 160 tegen de oostwand, naast de motoren']],
+  rolscherm:['Rolscherm spoelplek',['Over de open zuidzijde, 240 breed','Tegen zon (uv op neopreen) en slagregen']],
+  vent:['Ventilatieroosters',['Tuinschuur: laag in de zuidgevel, hoog in de oostwand','Motorstalling: laag in de noordgevel, hoog en laag in de westwand']],
+  spoelplek:['Spoel- en droogplek, open',['240 × 250, open naar zuid en oost','Spoelbak met handdouche, dompelbak 100-150 l, vloerputje','Droogrek, platte regenton achterin','Rolscherm aan de zuidzijde, tegen zon (uv op neopreen) en slagregen','Vloer: Redsun Cerasun Siena Grigio 40 × 80 (Snoei SB-2752), halfsteensverband, noord-zuid, op afschot naar het vloerputje']],
+  overkapping:['Overkapping, open',['265 × 300 × 250, sedumdak','Wit/crème boeiboord 35 cm, in één lijn met de bestaande schuur','Doorloop naar schuurdeur D3','Vloer: Redsun Cerasun Siena Grigio 40 × 80 (Snoei SB-2752), halfsteensverband, noord-zuid; strook van 25 langs gevel L7','2 kliko\'s, regenton, 1 stopcontact, plafondlamp']],
+  stalling:['Motorstalling, dicht',['400 × 300 × 250, sedumdak, wit/crème boeiboord 35 cm','Elektrische sectionaaldeur 250 × 200 midden in de noordgevel (lage geleiding)','Ruimte voor 2 motoren, werkbank 60 × 160 tegen de oostwand','Ventilatieroosters laag in de noordgevel, hoog en laag in de westwand: dwarsventilatie tegen benzinedamp en condens','Betonvloer met coating, 2 dubbele stopcontacten','Kabel voorbereid voor laadpunt']],
+  kliko:['Kliko\'s',['Grijs en groen, tegen gevel L7','Ruim buiten de draaicirkel van schuurdeur D3','Naar de straat via schuurdeur D3 en de bestaande schuur, niet via de poort']],
+  regenton1:['Regenton spoelplek',['Platte ton 250-300 l tegen de achterwand','Overloop naar het riool']],
+  regenton2:['Regenton overkapping',['Platte ton in de zuidoosthoek, tegen de stallingmuur','Gevuld door de regenpijp van de bestaande schuur','Handig om de motoren te wassen']],
+  regenpijp:['Regenpijp bestaande schuur',['Verlegd van 320 naar ca. 210 cm van de westhoek (L6), zodat hij in de overkapping blijft','Voert het regenwater van het schuurdak af','Vult de regenton; overloop naar de regenwaterafvoer']],
+  deuren:['Deuren en poort',['Poort 150 × 200, draait naar binnen','Schuurdeur 100, sectionaaldeur 250 × 200','D1 woonkamer, D3 bestaande schuur']],
+  pad:['Gang en pad',['Gang 150 breed, 120 langs L3, 160 langs pergola-terras, zone C en opstelplaats','Redsun Cerasun Siena Grigio 40 × 80 (Snoei SB-2752), halfsteensverband, lange kant noord-zuid; in de gang een strook van 30','Fundering 25-30 cm, geschikt voor de motoren']],
+  opstel:['Opstelplaats',['400 × 300, Redsun Cerasun Siena Grigio 40 × 80 (Snoei SB-2752), halfsteensverband, noord-zuid','Ruimte om de motor te draaien voor de stalling']],
+  tegelpad:['Tegelpad voor de schuur',['600 × 120, Redsun Cerasun Siena Grigio 40 × 80 (Snoei SB-2752), halfsteensverband, noord-zuid','Sluit aan op het pad']],
+  terras:['Terras bij het woonhuis',['600 × 240, Redsun Cerasun Siena Grigio 40 × 80 (Snoei SB-2752), halfsteensverband, noord-zuid','Afschot 1-1,5 % weg van het huis, naar goot G1','D1 heeft een drempel: terras sluit daaronder aan, geen drempelgoot']],
+  stapstenen:['Stapstenen in grind',['Hele tegels Redsun Cerasun Siena Grigio 40 × 80 (Snoei SB-2752), dwars gelegd, 65 cm hart op hart','4 tussen terras en tegelpad, 3 tussen pergola en opstelplaats','Beide overgangen identiek uitgevoerd']],
+  stapzone:['Stapstenenstrook',['100 × 260, gelijkvloers tussen de verhoogde delen','Antraciet split 8-16 in grindmatten, drainerende fundering','In lijn met de schuurdeur']],
+  v2b:['V2 bij de stapstenen',['2 inbouwspots in de stalen wanden']],
+  pergola:['Terras met pergola',['400 × 400, keramiek op beton 120 × 30 × 4 houtlook (Snoei SB-24770), 1/3-verband','Aluminium pergola 400 × 400, 260 hoog, antraciet','3 dwarsbalken, harmonicadoek, 6 dimbare spots']],
+  doorsteekC:['Doorsteek zone C',['100 × 210, antraciet split in grindmatten','3 stapstenen: hele tegels Redsun Cerasun Siena Grigio 40 × 80 (Snoei SB-2752), dwars, zelfde ritme als bij het terras']],
+  middenborder:['Zone A, groene strook',['600 × 260 in twee verhoogde delen (125 en 375 breed)','35 cm hoog, stalen rand, ook los langs L1','Leibomen achter, blokvormen en siergrassen in het midden, lage vaste planten voor','Lage, ritmische onderbeplanting tot ca. 60 cm: de leibomen zijn de blikvanger']],
+  ritme:['Ritme onder de leibomen',['Per leiboom twee blokvormen achter en een grasgroep ervoor','Herhaling van de stamafstand (210 cm)','Alles onder ca. 60 cm, zodat de stammen vrij blijven']],
+  plantstrook:['Plantstrook langs L3',['30 × 400','Vrijstaand rek 200 hoog met groenblijvende klimplant']],
+  plantenbak:['Plantenbak pergola',['40 × 300, 45 hoog, stalen rand','Hoge siergrassen tegen zicht op het pad']],
+  zoneC:['Zone C',['Verhoogde border 240 × 210','Beplanting 120-150 hoog']],
+  zoneCoost:['Zone C, strook tegen L5',['60 × 210, verhoogd','Leiboom tegen L5']],
+  zoneB:['Zone B',['105 × 440, verhoogd','Beplanting tot ca. 50 cm: onderkant raam L7 ligt op 85 cm']],
+  kant:['Stalen kantopsluiting',['Verzonken, antraciet, gelijk met de tegel','Betonrug onder de laatste tegelrij','Langs L3 zwaarder (5 mm) vanwege het motorpad','Verhoogde borders: de stalen rand is zelf de opsluiting']],
+  schutting:['Schuttingen L1 en L5',['200 hoog, hardhout-beton (gekozen)','Antraciet betonpalen en antraciet betonband 35','23 horizontale hardhouten planken, beide zijden zichtzijde','Voorbeeld: Woodvision designscherm 1064007 of Alex Systeembouw 23-planks hout-beton']],
+  leibomen:['Leibomen',['4 stuks, groenblijvend','Stam 220, raam 180 × 150','3 in zone A tegen inkijk vanaf de galerij, 1 in zone C tegen L5']],
+  goten:['Afvoergoten G1, G3 en G4',['G1 langs terras, aan de voet van zone A: het terras watert hierheen af','G3 berijdbaar (B125), G4 langs pergola','G2 (drempelgoot voor D1) is vervallen: de tuindeur heeft een drempel']],
+  hwa:['Regenwaterafvoer',['Van goten, regenpijpen en regentonnen','Naar de inspectieput; plaats en route bepaalt de installateur']],
+  ip:['Inspectieput',['Plaats nog te bepalen (een of meer putten)','Voorlopig getekend bij de hoek L7/L8','Verzamelpunt regenwater']],
+  w1:['W1 spoelbak',['Ca. 60 × 45, koude kraan en handdouche']],
+  dompelbak:['Dompelbak',['100-150 l, eigen aftap naar het vuilwaterriool']],
+  vloerputje:['Vloerputje',['Midden in de spoelplek','Naar het vuilwaterriool']],
+  w3:['Bestaande buitenkraan',['Oostkant L8','Aftakking koud water naar de spoelplek','Aftapkraan in de kruipruimte, onder het kruipluik bij de voordeur (zuidzijde)']],
+  meterkast:['Meterkast (aangenomen)',['In de westwand van de bestaande schuur (L6), ca. 250 breed','Nieuwe groep of groepen voor de tuin; aantal en indeling bepaalt de installateur (NEN 1010)','Kort naar K1 en het laadpunt; via het pad naar K2']],
+  k1:['Verdeelpunt K1',['In het bijgebouw','Voedt motorstalling, overkapping, deurmotor']],
+  k2:['Verdeelpunt K2',['In de tuinschuur','Voedt schuur, spoelplek, verlichting']],
+  laadpunt:['Laadpunt (voorbereid)',['Kabel 5 × 6 mm², 3-fase, eigen buis','Later aan te sluiten zonder graven']],
+  wcd:['Stopcontacten',['Schuur 2, spoelplek 1 hoog, pergola 1','Overkapping 1, motorstalling 2']],
+  v1:['V1 poort',['Wandlamp op de poortpaal','Bewegingsmelder']],
+  v2:['V2 pad',['5 inbouwspots in de stalen randen','Schema: schemer tot 23:00']],
+  v3:['V3 tuinschuur',['Wandlamp boven de deur, plafondlampen','Bewegingsmelder en schakelaar']],
+  v4:['V4 opstelplaats',['Wandlamp naast de sectionaaldeur','Bewegingsmelder']],
+  v5:['V5 terras',['2 wandlampen naast D1','App of schakelaar']],
+  v6:['V6 pergola',['6 dimbare spots in de dwarsbalken','App of dimmer']],
+  v7:['V7 leibomen',['4 grondspots die het groene scherm aanlichten','Schema']],
+  vplafond:['Plafondlampen bijgebouw',['Overkapping en stalling','Schakelaar']]
+};
+
+/* lagen */
+function setLayer(k,on){const g=$('l-'+k);if(g)g.toggleAttribute('hidden',!on);const c=$('c-'+k);if(c)c.checked=on;}
+document.querySelectorAll('#layers input').forEach(c=>c.addEventListener('change',()=>setLayer(c.dataset.l,c.checked)));
+const ALL=['omgeving','bebouwing','verharding','groen','bomen','afwatering','water','elektra','licht','maten','labels'];
+const PRESET={ontwerp:['omgeving','bebouwing','verharding','groen','bomen','maten','labels'],install:['omgeving','bebouwing','afwatering','water','elektra','licht','labels'],alles:ALL};
+['ontwerp','install','alles'].forEach(p=>$('b-'+p).addEventListener('click',()=>ALL.forEach(k=>setLayer(k,PRESET[p].includes(k)))));
+
+/* selectie */
+let selEl=null;
+function select(el){
+  if(selEl)selEl.classList.remove('sel');
+  selEl=el; const box=$('info');
+  if(!el){box.innerHTML='<p class="empty">Klik op een onderdeel in de tekening.</p>';return;}
+  el.classList.add('sel');
+  const d=INFO[el.dataset.id]; if(!d)return;
+  box.innerHTML='';const h=document.createElement('h3');h.textContent=d[0];box.appendChild(h);
+  const ul=document.createElement('ul');d[1].forEach(t=>{const li=document.createElement('li');li.textContent=t;ul.appendChild(li);});box.appendChild(ul);
+}
+
+/* zoom en schuiven */
+const BASE={x:30,y:-140,w:620,h:1030};let vb={...BASE};
+function apply(){svg.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);}
+function toSvg(cx,cy){const p=svg.createSVGPoint();p.x=cx;p.y=cy;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function zoom(f,px,py){const nw=Math.min(900,Math.max(80,vb.w*f));f=nw/vb.w;vb.x=px-(px-vb.x)*f;vb.y=py-(py-vb.y)*f;vb.w*=f;vb.h*=f;apply();}
+svg.addEventListener('wheel',e=>{e.preventDefault();const p=toSvg(e.clientX,e.clientY);zoom(e.deltaY>0?1.15:1/1.15,p.x,p.y);},{passive:false});
+function centerZoom(f){zoom(f,vb.x+vb.w/2,vb.y+vb.h/2);}
+$('zin').addEventListener('click',()=>centerZoom(1/1.3));$('zout').addEventListener('click',()=>centerZoom(1.3));
+$('zreset').addEventListener('click',()=>{vb={...BASE};apply();});
+
+let drag=null;
+svg.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y,moved:false,id:e.pointerId};});
+svg.addEventListener('pointermove',e=>{
+  if(measuring&&mPts.length===1){const p=toSvg(e.clientX,e.clientY);drawMeasure([mPts[0],p]);}
+  if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+  if(!drag.moved&&Math.hypot(dx,dy)<4)return;
+  if(!drag.moved){drag.moved=true;svg.setPointerCapture(drag.id);svg.classList.add('dragging');}
+  const k=svg.getScreenCTM().a;vb.x=drag.vx-dx/k;vb.y=drag.vy-dy/k;apply();
+});
+svg.addEventListener('pointerup',e=>{
+  const was=drag;drag=null;svg.classList.remove('dragging');
+  if(was&&was.moved)return;
+  if(measuring){const p=toSvg(e.clientX,e.clientY);if(mPts.length>=2)mPts=[];mPts.push({x:p.x,y:p.y});drawMeasure(mPts);return;}
+  select(e.target.closest('[data-id]'));
+});
+
+/* meten */
+let measuring=false,mPts=[];const mg=$('measure');const NS='http://www.w3.org/2000/svg';
+function el(n,a){const x=document.createElementNS(NS,n);for(const k in a)x.setAttribute(k,a[k]);return x;}
+function drawMeasure(pts){
+  mg.innerHTML='';
+  pts.forEach(p=>mg.appendChild(el('circle',{cx:p.x,cy:p.y,r:3,fill:'#d9480f'})));
+  if(pts.length<2)return;
+  const [a,b]=pts;mg.appendChild(el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:'#d9480f','stroke-width':1.5,'stroke-dasharray':'4 3'}));
+  const cm=Math.round(Math.hypot(b.x-a.x,b.y-a.y)/0.4/5)*5;
+  const t=el('text',{x:(a.x+b.x)/2+6,y:(a.y+b.y)/2-6,'font-size':13,'font-weight':700,fill:'#d9480f'});t.textContent=cm+' cm';mg.appendChild(t);
+  $('meetout').textContent='Afstand: '+cm+' cm ('+(cm/100).toFixed(2).replace('.',',')+' m)';
+}
+$('b-meet').addEventListener('click',()=>{measuring=!measuring;$('b-meet').setAttribute('aria-pressed',measuring);svg.classList.toggle('measuring',measuring);mPts=[];mg.innerHTML='';$('meetout').textContent=measuring?'Klik op het eerste punt.':'Klik op "Afstand meten" en daarna op twee punten.';});
+$('b-wis').addEventListener('click',()=>{mPts=[];mg.innerHTML='';$('meetout').textContent=measuring?'Klik op het eerste punt.':'Klik op "Afstand meten" en daarna op twee punten.';});
+
+apply();
+})();
+</script>
+
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js')}</script>
+</html>

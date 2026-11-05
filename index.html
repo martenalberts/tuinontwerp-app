@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="nl"><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#2f5f3a"><link rel="icon" href="iconen/icoon-192.png"><link rel="apple-touch-icon" href="iconen/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<meta charset="utf-8">
+<title>Tuinontwerp Achtertuin</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: smalle kop met sfeerbeeld, daaronder één brede hoofdknop (dossier) en vier grote knoppen in een raster van twee; onderaan per vakgebied welke stukken u nodig hebt. */
+:root{
+  --bg:#f3f5f2; --surface:#ffffff; --fg:#15201a; --muted:#5a665e; --line:#d6ddd7;
+  --accent:#2f5f3a; --accent-strong:#1e4227; --accent-fg:#ffffff; --accent-soft:#e3ece4; --stone:#8b8f8c;
+  --display:"Schibsted Grotesk","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101512; --surface:#18201b; --fg:#e7ece8; --muted:#a2ada5; --line:#2b352f;
+  --accent:#86c294; --accent-strong:#a9d9b4; --accent-fg:#0d1a11; --accent-soft:#1f2d23; --stone:#7c827e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101512; --surface:#18201b; --fg:#e7ece8; --muted:#a2ada5; --line:#2b352f;
+  --accent:#86c294; --accent-strong:#a9d9b4; --accent-fg:#0d1a11; --accent-soft:#1f2d23; --stone:#7c827e; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:17px/1.55 var(--display)}
+.wrap{max-width:1040px;margin:0 auto;padding-block:32px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:grid;gap:40px}
+
+/* kop */
+.kop{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:end}
+.kop .tekst{display:grid;gap:14px;min-width:0}
+.label{font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{margin:0;font-weight:700;font-size:clamp(34px,6vw,58px);line-height:1.02;letter-spacing:-.025em;text-wrap:balance}
+.intro{margin:0;color:var(--muted);max-width:46ch}
+.kop figure{margin:0;position:relative;aspect-ratio:4/3;max-width:100%;overflow:hidden;border-radius:4px;background:var(--line)}
+.kop img{width:100%;height:100%;object-fit:cover;display:block}
+.kop figcaption{position:absolute;left:10px;bottom:10px;font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;
+  background:rgba(16,21,18,.72);color:#f3f5f2;padding:6px 8px;border-radius:2px}
+
+/* knoppen */
+.knoppen{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.knop{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:22px;align-items:center;
+  padding:28px 28px;min-height:132px;border:1.5px solid var(--line);border-radius:6px;background:var(--surface);
+  color:var(--fg);text-decoration:none;transition:border-color .15s,transform .15s,background .15s}
+.knop:hover,.knop:focus-visible{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);transform:translateY(-2px)}
+.knop svg.icoon,.knop span{transition:color .15s}
+.knop:hover svg.icoon,.knop:hover span,.knop:focus-visible svg.icoon,.knop:focus-visible span{color:var(--accent-fg)}
+.knop:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.knop svg.icoon{width:64px;height:64px;flex:none;color:var(--accent)}
+.knop .t{display:grid;gap:4px;min-width:0}
+.knop b{font-size:24px;font-weight:600;letter-spacing:-.01em;line-height:1.15}
+.knop span{color:var(--muted);font-size:15.5px;line-height:1.45}
+.knop svg.pijl{width:26px;height:26px;color:var(--muted);transition:transform .15s,color .15s}
+.knop:hover svg.pijl,.knop:focus-visible svg.pijl{transform:translate(3px,-3px);color:var(--accent-fg)}
+.knop.hoofd{grid-column:1/-1;background:var(--accent);border-color:var(--accent);color:var(--accent-fg);min-height:150px}
+.knop.hoofd svg.icoon,.knop.hoofd span,.knop.hoofd svg.pijl{color:var(--accent-fg)}
+.knop.hoofd b{font-size:28px}
+.knop.hoofd span{opacity:.88}
+.knop.hoofd:hover,.knop.hoofd:focus-visible{background:var(--accent-strong);border-color:var(--accent-strong)}
+
+.leidend{margin:0;padding:14px 18px;border-left:3px solid var(--stone);background:var(--surface);color:var(--muted);font-size:15.5px;max-width:78ch}
+.leidend b{color:var(--fg)}
+
+/* per vakgebied */
+h2{margin:0 0 4px;font-size:22px;font-weight:600;letter-spacing:-.01em}
+.rollen{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 32px;border-top:1.5px solid var(--fg)}
+.rol{display:grid;gap:8px;padding:18px 0;border-bottom:1px solid var(--line);min-width:0}
+.rol h3{margin:0;font-size:18px;font-weight:600}
+.rol p{margin:0;color:var(--muted);font-size:15.5px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips a{font:500 13px/1 var(--mono);color:var(--accent);background:var(--accent-soft);text-decoration:none;padding:8px 10px;border-radius:3px}
+.chips a{transition:background .15s,color .15s}
+.chips a:hover,.chips a:focus-visible{background:var(--accent);color:var(--accent-fg);outline:none}
+
+footer{display:flex;flex-wrap:wrap;gap:8px 28px;font:400 13px/1.5 var(--mono);color:var(--muted);border-top:1px solid var(--line);padding-top:18px}
+
+@media (max-width:760px){
+  .kop{grid-template-columns:1fr}
+  .knoppen,.rollen{grid-template-columns:1fr}
+  .knop{padding:22px 20px;gap:16px;min-height:0}
+  .knop svg.icoon{width:48px;height:48px}
+  .knop b{font-size:21px}.knop.hoofd b{font-size:23px}
+}
+@media (prefers-reduced-motion:reduce){.knop,.knop svg.pijl{transition:none}.knop:hover{transform:none}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="pijl" viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<div class="wrap">
+  <header class="kop">
+    <div class="tekst">
+      <div class="label">Projectstukken · versie 1.1 · 5 november 2026</div>
+      <h1>Tuinontwerp achtertuin</h1>
+      <p class="intro">Alle stukken van het vastgestelde ontwerp op één plek. Kies een stuk. Alles werkt ook zonder internet, behalve de lettertypes bij de eerste keer.</p>
+    </div>
+    <figure>
+      <img src="dossier/sfeerbeeld-1-vanuit-tuindeur.jpg" alt="Impressie van de tuin vanuit de tuindeur" width="1600" height="1200">
+      <figcaption>Impressie</figcaption>
+    </figure>
+  </header>
+
+  <nav class="knoppen" aria-label="Projectstukken">
+    <a class="knop hoofd" href="dossier/ontwerpdossier.html">
+      <svg class="icoon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+        <path d="M16 6h24l12 12v40H16z"/><path d="M40 6v12h12"/><path d="M24 30h20M24 38h20M24 46h12"/>
+      </svg>
+      <div class="t"><b>Ontwerpdossier</b><span>Uitgangspunten, werkomschrijving per vakman, volgorde van uitvoering, grondwerk, installaties en checklist</span></div>
+      <svg class="pijl" aria-hidden="true"><use href="#pijl"/></svg>
+    </a>
+
+    <a class="knop" href="tuin-plattegrond.html">
+      <svg class="icoon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+        <path d="M6 14 22 8l20 6 16-6v42l-16 6-20-6-16 6z"/><path d="M22 8v42M42 14v42"/>
+      </svg>
+      <div class="t"><b>Plattegrond</b><span>Alle onderdelen op schaal, in lagen aan en uit te zetten, met meetfunctie</span></div>
+      <svg class="pijl" aria-hidden="true"><use href="#pijl"/></svg>
+    </a>
+
+    <a class="knop" href="tuin-3d.html">
+      <svg class="icoon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+        <path d="M32 6 56 19v26L32 58 8 45V19z"/><path d="M8 19l24 13 24-13M32 32v26"/>
+      </svg>
+      <div class="t"><b>3D-model</b><span>Het ontwerp op ware grootte, met zon en schaduw en rondlopen op ooghoogte</span></div>
+      <svg class="pijl" aria-hidden="true"><use href="#pijl"/></svg>
+    </a>
+
+    <a class="knop" href="tuin-legplan-40x80.html">
+      <svg class="icoon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true">
+        <rect x="8" y="8" width="48" height="48"/><path d="M24 8v24M40 8v24M16 32v24M32 32v24M48 32v24M8 32h48"/>
+      </svg>
+      <div class="t"><b>Legplan 40 × 80</b><span>Elke tegel, zaagmaten en bestellijst: 284 tegels SB-2752 en 49 houtlook SB-24770</span></div>
+      <svg class="pijl" aria-hidden="true"><use href="#pijl"/></svg>
+    </a>
+
+    <a class="knop" href="dossier/sfeerbeelden.html">
+      <svg class="icoon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+        <rect x="6" y="12" width="52" height="40" rx="2"/><path d="M6 44l14-14 12 12 8-8 18 18"/><circle cx="44" cy="24" r="4"/>
+      </svg>
+      <div class="t"><b>Sfeerbeelden</b><span>Vier fotorealistische impressies vanuit de tuindeur, het pergola-terras, de galerij en de poort</span></div>
+      <svg class="pijl" aria-hidden="true"><use href="#pijl"/></svg>
+    </a>
+  </nav>
+
+  <p class="leidend"><b>Wat is leidend?</b> Voor de uitvoering gelden het ontwerpdossier, de plattegrond, het legplan en het 3D-model. De sfeerbeelden zijn impressies; maten, aantallen en details daarin kunnen afwijken.</p>
+
+  <section>
+    <h2>Wat hebt u nodig?</h2>
+    <div class="rollen">
+      <div class="rol">
+        <h3>Gemeente</h3>
+        <p>Indeling, maten en ligging van het bijgebouw, de tuinschuur en de schuttingen ten opzichte van de erfgrenzen.</p>
+        <div class="chips"><a href="dossier/ontwerpdossier.html">Ontwerpdossier</a><a href="tuin-plattegrond.html">Plattegrond</a><a href="tuin-3d.html">3D-model</a></div>
+      </div>
+      <div class="rol">
+        <h3>Hovenier</h3>
+        <p>Borders, leibomen, beplanting en grindstroken met stapstenen.</p>
+        <div class="chips"><a href="tuin-plattegrond.html">Plattegrond</a><a href="dossier/ontwerpdossier.html">Ontwerpdossier</a><a href="dossier/sfeerbeelden.html">Sfeerbeelden</a></div>
+      </div>
+      <div class="rol">
+        <h3>Aannemer</h3>
+        <p>Bijgebouw met overkapping en motorstalling, tuinschuur met spoelplek, pergola, schuttingen en installaties.</p>
+        <div class="chips"><a href="dossier/ontwerpdossier.html">Ontwerpdossier</a><a href="tuin-3d.html">3D-model</a><a href="tuin-plattegrond.html">Plattegrond</a></div>
+      </div>
+      <div class="rol">
+        <h3>Stratenmaker</h3>
+        <p>Grondwerk, peil en afschot, zandbed, tegelwerk in halfsteensverband en de bestellijst.</p>
+        <div class="chips"><a href="tuin-legplan-40x80.html">Legplan 40 × 80</a><a href="dossier/ontwerpdossier.html">Ontwerpdossier</a><a href="tuin-plattegrond.html">Plattegrond</a></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Opdrachtgever: Marten Alberts</span>
+    <span>Vastgesteld 31 oktober 2026 · versie 1.1</span>
+    <span>Tegel: Redsun Cerasun Siena Grigio 40 × 80 × 4</span>
+  </footer>
+</div>
+
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js')}</script>
+</html>
